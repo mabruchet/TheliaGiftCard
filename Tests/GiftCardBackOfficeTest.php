@@ -127,6 +127,8 @@ final class GiftCardBackOfficeTest extends GiftCardTestCase
         self::assertStringContainsString('Montant de carte cadeau utilisé pour cette commande', $orderBlock);
         self::assertStringContainsString('Montant carte cadeau '.$giftCard->getCode().' : 12.50', $orderBlock);
         self::assertStringContainsString('Total payé en carte cadeau', $orderBlock);
+        self::assertStringContainsString('E-mail du bénéficiaire', $page);
+        self::assertStringContainsString('<th>Statut de la commande</th>', $page);
 
         [$page, $script, $orderBlock] = $this->renderConfigurationScreen('de_DE', $order->getId());
 
@@ -137,6 +139,52 @@ final class GiftCardBackOfficeTest extends GiftCardTestCase
         self::assertStringContainsString('"sInfo": "Elemente _START_ bis _END_ von insgesamt _TOTAL_"', $script);
         self::assertStringContainsString('Betrag der Geschenkkarte '.$giftCard->getCode().': 12.50', $orderBlock);
         self::assertStringContainsString('Mit Geschenkkarten bezahlt insgesamt', $orderBlock);
+        self::assertStringContainsString('E-Mail des Empfängers', $page);
+        self::assertStringContainsString('<th>Bestellstatus</th>', $page);
+    }
+
+    public function testTheEditWindowHasTheFieldsTheScriptFillsWithTheCard(): void
+    {
+        $giftCard = $this->giftCard();
+        [$page, $script] = $this->renderConfigurationScreen('fr_FR');
+
+        $response = $this->asAdmin($this->createFixtureFactory()->admin(), 'POST', '/admin/module/theliagiftcard/show/'.$giftCard->getCode());
+        $card = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+
+        preg_match_all("/\\$\\('#(\\w+)'\\)\\.val\\(response\\['(\\w+)'\\]\\)/", $script, $filled, \PREG_SET_ORDER);
+        $fieldOf = [];
+        foreach ($filled as [, $elementId, $key]) {
+            $fieldOf[$elementId] = $key;
+        }
+        self::assertSame(
+            ['amount' => 'amount', 'expirationDate' => 'expiration_date', 'beneficiaryAddress' => 'beneficiary_address', 'giftCardId' => 'card_id'],
+            $fieldOf,
+        );
+
+        $document = new \DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML('<?xml encoding="UTF-8">'.$page);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new \DOMXPath($document);
+        $form = $xpath->query('//*[@id="manualy_edit_card_gift_dialog"]//form')->item(0);
+        self::assertInstanceOf(\DOMElement::class, $form);
+
+        $expectedNames = ['amount' => 'amount', 'expirationDate' => 'expiration_date', 'beneficiaryAddress' => 'beneficiary_address', 'giftCardId' => 'gift_card_id'];
+        foreach ($expectedNames as $elementId => $field) {
+            $fields = $xpath->query('.//*[@id="'.$elementId.'"]', $form);
+            self::assertSame(1, $fields->length, 'The script fills #'.$elementId.', which the edit window does not have.');
+            $element = $fields->item(0);
+            self::assertInstanceOf(\DOMElement::class, $element);
+            self::assertSame('edit_gift_card['.$field.']', $element->getAttribute('name'));
+            self::assertArrayHasKey($fieldOf[$elementId], $card, 'The card detail route does not give '.$fieldOf[$elementId].'.');
+        }
+
+        self::assertSame((float) $giftCard->getAmount(), (float) $card['amount']);
+        self::assertSame($giftCard->getId(), $card['card_id']);
+        self::assertSame('hidden', $xpath->query('.//*[@id="giftCardId"]', $form)->item(0)?->getAttribute('type'));
+        self::assertFalse($xpath->query('.//*[@id="beneficiaryAddress"]', $form)->item(0)?->hasAttribute('required'), 'A card without a recipient e-mail could not be saved.');
+        self::assertSame(1, $xpath->query('.//*[@id="logs-body"]', $form)->length, 'The script fills the usage history of the card into #logs-body.');
     }
 
     /**

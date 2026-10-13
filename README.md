@@ -29,6 +29,12 @@ picked in the card list for a download); the templates receive it as `gift_card_
 
 ## Changes
 
+### 3.2.4
+
+- The activate and deactivate buttons of the gift card list work again. They are POST forms with a CSRF token since 3.1.0, but the list script still cancelled the click and requested the `href` of the button, which a button does not have: the request went to the page itself and the card kept its status. The script now posts the form (action and token) and redraws the table once the server has answered.
+- The edit window opens with the amount, expiration date and recipient e-mail of the card. The template passed the element ids in `attr`, after the id Symfony renders, so the browser kept the generated ids and the script filled nothing. The ids are now passed as the `id` variable. The card id field is hidden again, the recipient e-mail is optional (a card created without one can be saved), and the usage history table of 2.x, which the script still fills, is back. `/admin/module/theliagiftcard/show/{code}` always returns `beneficiary_address`, `null` when the card has none.
+- The edit window labels are translated in fr_FR, en_US and de_DE.
+
 ### 3.2.3
 
 - The gift card list of the configuration page loads again. The script declared a thirteenth column (the edit button) that the table header did not have, and DataTables stopped on `Cannot read properties of undefined (reading 'style')` before asking for the cards. The edit column is now part of the column definitions, so the header, the script and the rows of `/admin/module/theliagiftcard/show` all have thirteen columns.

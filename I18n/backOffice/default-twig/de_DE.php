@@ -42,4 +42,9 @@ return [
     'Displaying elements _START_ to _END_ of _TOTAL_' => 'Elemente _START_ bis _END_ von insgesamt _TOTAL_',
     'Displaying elements 0 to 0 of 0' => 'Elemente 0 bis 0 von insgesamt 0',
     '(filtered from _MAX_ elements in total)' => '(gefiltert aus insgesamt _MAX_ Elementen)',
+    'Usage history' => 'Verwendungsverlauf',
+    'Order reference' => 'Bestellnummer',
+    'Amount spent' => 'Verwendeter Betrag',
+    'Order status' => 'Bestellstatus',
+    'Date' => 'Datum',
 ];
