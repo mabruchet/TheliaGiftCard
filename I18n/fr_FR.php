@@ -41,4 +41,6 @@ return array(
     'Sorry, an error occurred.' => 'Désolé, une erreur est survenue.',
     'No gift card carries this code.' => 'Aucune carte cadeau ne porte ce code.',
     'The gift card could not be sent.' => 'La carte cadeau n\'a pas pu être envoyée.',
+    'created_at' => 'Date de création',
+    'edit' => 'Modifier',
 );

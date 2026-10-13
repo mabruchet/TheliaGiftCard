@@ -181,6 +181,13 @@ class HookConfigurationManager extends BaseHook
                 'title' => Translator::getInstance()->trans('action', [], TheliaGiftCard::DOMAIN_NAME),
                 'searchable' => false,
             ],
+            [
+                'name' => 'edit',
+                'targets' => ++$i,
+                'orm' => null,
+                'title' => Translator::getInstance()->trans('edit', [], TheliaGiftCard::DOMAIN_NAME),
+                'searchable' => false,
+            ],
         ];
     }
 }

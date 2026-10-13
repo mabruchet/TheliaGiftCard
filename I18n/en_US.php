@@ -18,5 +18,7 @@ return array(
     'action' => 'Action',
     'code' => 'Code',
     'spend_amount' => 'Amount Spent',
-    'expiration_date' => 'Expiration date'
+    'expiration_date' => 'Expiration date',
+    'created_at' => 'Creation date',
+    'edit' => 'Edit',
 );
